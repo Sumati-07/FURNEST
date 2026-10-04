@@ -19,6 +19,19 @@ const chatRoutes = require("./src/routes/chatRoutes");
 const userRoutes = require("./src/routes/userRoutes");
 const bookingRoutes = require("./src/routes/bookingRoutes");
 
+//for admin
+const adminAuthRoutes = require("./src/routes/adminAuthRoutes");
+const adminDashboardRoutes = require("./src/routes/adminDashboardRoutes");
+const adminUserRoutes = require("./src/routes/adminUserRoutes");
+const adminPetRoutes = require("./src/routes/adminPetRoutes");
+const adminPostRoutes = require("./src/routes/adminPostRoutes");
+const adminApplicationRoutes = require("./src/routes/adminApplicationRoutes");
+const adminBookingRoutes = require("./src/routes/adminBookingRoutes");
+const adminReviewRoutes = require("./src/routes/adminReviewRoutes");
+const adminReportRoutes = require("./src/routes/adminReportRoutes");
+const adminAIInsightsRoutes = require("./src/routes/adminAIInsightsRoutes");
+const reportRoutes = require("./src/routes/reportRoutes");
+
 const setupSocket = require("./src/socket");
 
 const app = express();
@@ -72,6 +85,20 @@ app.use("/api/chats", chatRoutes);
 app.use("/api/users", userRoutes);
 
 app.use("/api/bookings", bookingRoutes);
+
+//admin part
+app.use("/api/admin/auth", adminAuthRoutes);
+app.use("/api/admin/dashboard", adminDashboardRoutes);
+app.use("/api/admin/users", adminUserRoutes);
+app.use("/api/admin/pets", adminPetRoutes);
+app.use("/api/admin/posts", adminPostRoutes);
+app.use("/api/admin/applications", adminApplicationRoutes);
+app.use("/api/admin/bookings", adminBookingRoutes);
+app.use("/api/admin/reviews", adminReviewRoutes);
+app.use("/api/admin/reports", adminReportRoutes);
+app.use("/api/admin/ai-insights", adminAIInsightsRoutes);
+
+app.use("/api/reports", reportRoutes);
 
 /*
  * ============================================================
