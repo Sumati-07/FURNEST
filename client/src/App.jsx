@@ -1,122 +1,306 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useEffect, useState } from 'react'
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom'
 
-function App() {
-  const [count, setCount] = useState(0)
+import Sidebar from './components/Sidebar.jsx'
+import TopBar from './components/TopBar.jsx'
+
+import LandingPage from './pages/LandingPage.jsx'
+import Login from './pages/Login.jsx'
+import Register from './pages/Register.jsx'
+import ForgotPassword from './pages/ForgotPassword.jsx'
+import Dashboard from './pages/Dashboard.jsx'
+import BrowsePets from './pages/BrowsePets.jsx'
+import MyPets from './pages/MyPets.jsx'
+import AddPet from './pages/AddPet.jsx'
+import TemporaryCare from './pages/TemporaryCare.jsx'
+import NewPost from './pages/NewPost.jsx'
+import MyBookings from './pages/MyBookings.jsx'
+import BookingDetails from './pages/BookingDetails.jsx'
+import Chats from './pages/Chats.jsx'
+import Reviews from './pages/Reviews.jsx'
+import Applicants from './pages/Applicants.jsx'
+import Settings from './pages/Settings.jsx'
+
+import {
+  getCurrentUser,
+  logout as apiLogout,
+} from './services/api.js'
+
+
+function AppLayout({ currentUser, onLogout }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="min-h-screen bg-meadow sm:flex">
+      <Sidebar
+        open={sidebarOpen}
+        onLogout={onLogout}
+      />
 
-      <div className="ticks"></div>
+      <div className="flex-1">
+        <TopBar
+          onToggleSidebar={() =>
+            setSidebarOpen((v) => !v)
+          }
+          currentUser={currentUser}
+        />
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+        <Outlet context={{ currentUser }} />
+      </div>
+    </div>
   )
 }
 
-export default App
+
+export default function App() {
+  const [currentUser, setCurrentUser] = useState(null)
+  const [checkingSession, setCheckingSession] = useState(true)
+
+  useEffect(() => {
+    const token = localStorage.getItem('furnest_token')
+
+    if (!token) {
+      setCheckingSession(false)
+      return
+    }
+
+    getCurrentUser()
+      .then(setCurrentUser)
+      .catch(() => {
+        localStorage.removeItem('furnest_token')
+      })
+      .finally(() => {
+        setCheckingSession(false)
+      })
+  }, [])
+
+
+  function handleLogin(_token, user) {
+    setCurrentUser(user)
+  }
+
+
+  function handleLogout() {
+    apiLogout()
+    setCurrentUser(null)
+  }
+
+
+  if (checkingSession) {
+    return null
+  }
+
+
+  const isAuthed = !!currentUser
+
+
+  return (
+    <Routes>
+
+      {/* =========================
+          PUBLIC ROUTES
+      ========================== */}
+
+      <Route
+        path="/"
+        element={
+          isAuthed ? (
+            <Navigate
+              to="/dashboard"
+              replace
+            />
+          ) : (
+            <LandingPage />
+          )
+        }
+      />
+
+
+      <Route
+        path="/login"
+        element={
+          isAuthed ? (
+            <Navigate
+              to="/dashboard"
+              replace
+            />
+          ) : (
+            <Login onLogin={handleLogin} />
+          )
+        }
+      />
+
+
+      <Route
+        path="/register"
+        element={
+          isAuthed ? (
+            <Navigate
+              to="/dashboard"
+              replace
+            />
+          ) : (
+            <Register onLogin={handleLogin} />
+          )
+        }
+      />
+
+
+      <Route
+        path="/forgot-password"
+        element={<ForgotPassword />}
+      />
+
+
+      {/* =========================
+          PROTECTED ROUTES
+      ========================== */}
+
+      <Route
+        element={
+          isAuthed ? (
+            <AppLayout
+              currentUser={currentUser}
+              onLogout={handleLogout}
+            />
+          ) : (
+            <Navigate
+              to="/login"
+              replace
+            />
+          )
+        }
+      >
+
+        {/* Dashboard */}
+        <Route
+          path="/dashboard"
+          element={
+            <Dashboard
+              currentUser={currentUser}
+            />
+          }
+        />
+
+
+        {/* Browse Pets */}
+        <Route
+          path="/browse"
+          element={
+            <BrowsePets
+              currentUser={currentUser}
+            />
+          }
+        />
+
+
+        {/* My Pets */}
+        <Route
+          path="/my-pets"
+          element={
+            <MyPets
+              currentUser={currentUser}
+            />
+          }
+        />
+
+
+        {/* Add Pet */}
+        <Route
+          path="/add-pet"
+          element={
+            <AddPet
+              currentUser={currentUser}
+            />
+          }
+        />
+
+
+        {/* Temporary Care */}
+        <Route
+          path="/temporary-care"
+          element={
+            <TemporaryCare
+              currentUser={currentUser}
+            />
+          }
+        />
+
+
+        {/* New Post */}
+        <Route
+          path="/new-post"
+          element={
+            <NewPost
+              currentUser={currentUser}
+            />
+          }
+        />
+
+
+        {/* My Bookings */}
+        <Route
+          path="/bookings"
+          element={
+            <MyBookings
+              currentUser={currentUser}
+            />
+          }
+        />
+
+
+        {/* Booking Details */}
+        <Route
+          path="/bookings/:bookingId"
+          element={
+            <BookingDetails
+              currentUser={currentUser}
+            />
+          }
+        />
+
+
+        {/* Chats */}
+        <Route
+          path="/chats"
+          element={
+            <Chats
+              currentUser={currentUser}
+            />
+          }
+        />
+
+
+        {/* Reviews */}
+        <Route
+          path="/reviews"
+          element={
+            <Reviews
+              currentUser={currentUser}
+            />
+          }
+        />
+
+
+        {/* Settings */}
+        <Route
+          path="/settings"
+          element={
+            <Settings
+              currentUser={currentUser}
+            />
+          }
+        />
+
+
+        {/* Applicants */}
+        <Route
+          path="/posts/:postId/applications"
+          element={<Applicants />}
+        />
+
+      </Route>
+
+    </Routes>
+  )
+}
