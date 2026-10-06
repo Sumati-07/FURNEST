@@ -24,7 +24,17 @@ const postSchema = new mongoose.Schema(
             type: String,
             enum: ["open", "booked", "closed"],
             default: "open"
-        }
+        },
+        
+        isRemoved: {
+    type: Boolean,
+    default: false
+},
+
+removedReason: {
+    type: String,
+    trim: true
+}
     },
     { timestamps: true }
 );

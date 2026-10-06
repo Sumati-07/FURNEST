@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Routes, Route, Navigate, Outlet } from 'react-router-dom'
+import {
+  Routes,
+  Route,
+  Navigate,
+  Outlet,
+} from 'react-router-dom'
 
 import Sidebar from './components/Sidebar.jsx'
 import TopBar from './components/TopBar.jsx'
@@ -27,17 +32,40 @@ import {
 } from './services/api.js'
 
 
-function AppLayout({ currentUser, onLogout }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+// ======================================================
+// ADMIN IMPORTS
+// ======================================================
+
+import AdminLogin from './admin/pages/AdminLogin.jsx'
+import AdminDashboard from './admin/pages/AdminDashboard.jsx'
+import AdminSidebar from './admin/components/AdminSidebar.jsx'
+
+import {
+  isAdminLoggedIn,
+} from './admin/services/adminApi.js'
+
+
+// ======================================================
+// USER APP LAYOUT
+// ======================================================
+
+function AppLayout({
+  currentUser,
+  onLogout,
+}) {
+  const [sidebarOpen, setSidebarOpen] =
+    useState(false)
 
   return (
     <div className="min-h-screen bg-meadow sm:flex">
+
       <Sidebar
         open={sidebarOpen}
         onLogout={onLogout}
       />
 
       <div className="flex-1">
+
         <TopBar
           onToggleSidebar={() =>
             setSidebarOpen((v) => !v)
@@ -45,61 +73,183 @@ function AppLayout({ currentUser, onLogout }) {
           currentUser={currentUser}
         />
 
-        <Outlet context={{ currentUser }} />
+        <Outlet
+          context={{
+            currentUser,
+          }}
+        />
+
       </div>
+
     </div>
   )
 }
 
 
+// ======================================================
+// ADMIN LAYOUT
+// ======================================================
+
+function AdminLayout() {
+  return (
+    <div className="min-h-screen bg-meadow flex">
+
+      <AdminSidebar />
+
+      <main className="min-w-0 flex-1">
+
+        <Outlet />
+
+      </main>
+
+    </div>
+  )
+}
+
+
+// ======================================================
+// APP
+// ======================================================
+
 export default function App() {
-  const [currentUser, setCurrentUser] = useState(null)
-  const [checkingSession, setCheckingSession] = useState(true)
+
+  const [currentUser, setCurrentUser] =
+    useState(null)
+
+  const [checkingSession, setCheckingSession] =
+    useState(true)
+
+
+  // ====================================================
+  // CHECK NORMAL USER SESSION
+  // ====================================================
 
   useEffect(() => {
-    const token = localStorage.getItem('furnest_token')
+
+    const token =
+      localStorage.getItem(
+        'furnest_token'
+      )
 
     if (!token) {
+
       setCheckingSession(false)
+
       return
     }
 
     getCurrentUser()
       .then(setCurrentUser)
       .catch(() => {
-        localStorage.removeItem('furnest_token')
+
+        localStorage.removeItem(
+          'furnest_token'
+        )
+
       })
       .finally(() => {
+
         setCheckingSession(false)
+
       })
+
   }, [])
 
 
-  function handleLogin(_token, user) {
+  // ====================================================
+  // NORMAL USER LOGIN
+  // ====================================================
+
+  function handleLogin(
+    _token,
+    user
+  ) {
     setCurrentUser(user)
   }
 
 
+  // ====================================================
+  // NORMAL USER LOGOUT
+  // ====================================================
+
   function handleLogout() {
+
     apiLogout()
+
     setCurrentUser(null)
   }
 
+
+  // ====================================================
+  // WAIT FOR SESSION CHECK
+  // ====================================================
 
   if (checkingSession) {
     return null
   }
 
 
-  const isAuthed = !!currentUser
+  const isAuthed =
+    !!currentUser
 
+
+  // ====================================================
+  // ROUTES
+  // ====================================================
 
   return (
     <Routes>
 
-      {/* =========================
-          PUBLIC ROUTES
-      ========================== */}
+
+      {/* ==================================================
+          ADMIN LOGIN
+      ================================================== */}
+
+      <Route
+        path="/admin/login"
+        element={
+          isAdminLoggedIn() ? (
+            <Navigate
+              to="/admin/dashboard"
+              replace
+            />
+          ) : (
+            <AdminLogin />
+          )
+        }
+      />
+
+
+      {/* ==================================================
+          ADMIN PROTECTED ROUTES
+      ================================================== */}
+
+      <Route
+        element={
+          isAdminLoggedIn() ? (
+            <AdminLayout />
+          ) : (
+            <Navigate
+              to="/admin/login"
+              replace
+            />
+          )
+        }
+      >
+
+        <Route
+          path="/admin/dashboard"
+          element={
+            <AdminDashboard />
+          }
+        />
+
+      </Route>
+
+
+      {/* ==================================================
+          PUBLIC USER ROUTES
+      ================================================== */}
 
       <Route
         path="/"
@@ -125,7 +275,9 @@ export default function App() {
               replace
             />
           ) : (
-            <Login onLogin={handleLogin} />
+            <Login
+              onLogin={handleLogin}
+            />
           )
         }
       />
@@ -140,7 +292,9 @@ export default function App() {
               replace
             />
           ) : (
-            <Register onLogin={handleLogin} />
+            <Register
+              onLogin={handleLogin}
+            />
           )
         }
       />
@@ -148,13 +302,15 @@ export default function App() {
 
       <Route
         path="/forgot-password"
-        element={<ForgotPassword />}
+        element={
+          <ForgotPassword />
+        }
       />
 
 
-      {/* =========================
-          PROTECTED ROUTES
-      ========================== */}
+      {/* ==================================================
+          PROTECTED USER ROUTES
+      ================================================== */}
 
       <Route
         element={
@@ -171,6 +327,7 @@ export default function App() {
           )
         }
       >
+
 
         {/* Dashboard */}
         <Route
@@ -296,7 +453,9 @@ export default function App() {
         {/* Applicants */}
         <Route
           path="/posts/:postId/applications"
-          element={<Applicants />}
+          element={
+            <Applicants />
+          }
         />
 
       </Route>

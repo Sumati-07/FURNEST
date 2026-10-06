@@ -43,12 +43,37 @@ const userSchema = new mongoose.Schema(
             default: false
         },
 
+        // Admin account flag.
+        // Normal users remain false.
+        isAdmin: {
+            type: Boolean,
+            default: false
+        },
+
+        // Account status.
+        // Admin can suspend/activate users.
+        isActive: {
+            type: Boolean,
+            default: true
+        },
+
         // Filled in as bookings complete — this is what the matching
         // and price-prediction services read from later.
         caretakerStats: {
-            completedBookings: { type: Number, default: 0 },
-            averageRating: { type: Number, default: 0 },
-            experienceTags: { type: [String], default: [] } // e.g. "Dog", "Large breed"
+            completedBookings: {
+                type: Number,
+                default: 0
+            },
+
+            averageRating: {
+                type: Number,
+                default: 0
+            },
+
+            experienceTags: {
+                type: [String],
+                default: []
+            } // e.g. "Dog", "Large breed"
         }
     },
     { timestamps: true }
